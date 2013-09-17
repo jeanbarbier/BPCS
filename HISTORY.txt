@@ -1,0 +1,29 @@
+------- Current version
+%CSBP_solver version 3.0, february 2013
+18/02/13 modifications by Jean Barbier
+1.) Re-organization of the code with use of classes
+2.) Addition of new priors with associated learnings: L1, SparseExponential, SparseConstant
+3.) Addition of the AMP-homogeneous form of the algorithm
+
+------- Old version
+%CSBP_solver Version 2.0, January 2013
+20/01/2013 Pan Zhang: 
+1.) Code is re-organized, especially CSBP_Solver.m.
+2.) AMP is optimized, now it is much faster than before.
+3.) BP is added as an option(just finished, needs tests), set opt.method='BP' to use BP instead of AMP.
+
+------- Old Version
+%CSBP_solver Version 1.0, October 2012
+
+16-11-2012 F. Krzakala: Complete changes of the algo (including the
+name). We now use the notation from Krzakala et al. arXiv:1206.3953,
+J. Stat. Mech. (2012) P08009 Also included are new matrices, priors
+and options. So far, the fully-TAP version is not implemented.
+
+------- Old Version
+
+% EMBP_Solver Version 1.0, February 2012
+
+Algorithm is taken from Krzakala et al. arXiv:1109.4424
+Written by: J. Barbier & F. Krzakala
+Email: jean.barbier.cs@gmail.com and fk@espci.fr

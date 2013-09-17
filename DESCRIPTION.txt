@@ -1,0 +1,93 @@
+% CSBP_Solver is a Belief-Propagation based solver for compressed
+% sensing. It deals with incoherent and (roughly) zero mean matrices.
+%
+% Given an (underdetermined) system y = Gx + noise, CSBP_Solver will
+% return a signal estimate x of length N given the measurements y of
+% length M and the matrix G.  It can use different kind of prior distributions : 
+% Gauss-Bernoulli ('SparseGauss'), Binary prior ('SparseBinary'), Approximatly sparse gaussian prior ('2Gauss')
+% Exponential law ('SparseExponential'), Constant weight in a finite bound ('SparseConstant') and can also perform 
+% the usual L1 optimization ('L1').
+%
+% SYNTAX :
+% [results,n_and_e] = CSBP_Solver(Y,G,opt);
+%
+% Inputs :
+% Y                     [M,1] measurement vector (row or column).
+% G                     [M,N] measurement matrix.
+% opt -                 structure containing  option fields.
+%   .method             method of resolution of the inference problem (see
+%                       the article by Krzakala and al.). It can be 'AMP', 'AMPh' for statistically 
+%                       homogeneous measurements matricesor or 'BP' ['AMP']
+%   .save_memory        option that does not allow to create new objects of the
+%                       size comparable with the measurement matrix during
+%                       the procedure, such that the memory required by the
+%                       routine is lowered. [1]
+%   .save_speed         option that allows pre-computation of new objects of the
+%                       size comparable with the measurement matrix, such that the memory required by the
+%                       routine is multiplied by a factor 3 to 4 times the one required to store the measurement matrix
+%                       but the algorithm is speeded-up. It is usefull for not too big matrices or high memory capacities. [0]
+%                       WARNING: save_memory and save_speed are not
+%                       compatible: One must be equal to 1, the other to 0.
+%   .nb_iter            max number of iterations [default : 1000].
+%   .print              print results every opt.print iterations (0 -> never) [10].
+%   .conv               convergence criterion [1e-8].
+%   .learn              learning parameters or not [0].
+%   .signal_rho         first estimate of the density of the signal [M/10N].
+%   .var_noise          first estimate of the variance vector of the noise [1e-10].
+%   .signal             a solution to compare to while running.
+%   .dump_learn         dumping coefficient of the learning [0.].
+%   .damp_mes           dumping of the messages [0.5].
+%   .option_noise       Value is 1/~=1 [0, i.e not activated]. If activated,
+%                       it deals with matrix uncertainty.
+%   .remove_mean        [0] When activited (1 or 2 instead of 0), this
+%                       allows the algorithm to deal with non zero
+%                       mean matrices that can have a different mean on every column (1).
+%                       With value 2 it assumes the same average value for each of them.
+%                       If provided (see bellow), it uses the one given by the user.
+%   .Gmean              see .remove_mean
+%   .Ymean              see .remove_mean
+%   .Nvec               [1] This can be used to specify a structure
+%                       to the signal, and change the printing output.
+%   .Mvec               [1] This can be used to specify a structure
+%                       to the solution vector Y (this is used in
+%                       Active option.noise for instance).
+%   .prior              prior on the data ['SparseGauss'].
+%                       One can use 'SparseGauss', 'SparseBinary',
+%                       '2Gauss' for approximate-sparsity with 2
+%                       gaussians, 'SparseExponential', 'SparseConstant' and 'L1'.
+%   .m_gauss            Mean of the gaussian for the prior 'SparseGauss'.
+%   .var_gauss          Variance ..
+%   .expo               Exposent for the prior 'SparseExponential'.
+%   .c_down             Lower bound of the signal for the prior 'SparseConstant'
+%   .c_up               Upper bound ..
+%   .m_2_gauss          Mean of the second gaussian in the prior, so the one of big components of density rho.
+%   .var_2_gauss        Variance ..
+%   .var_1_gauss        Variance of the small gaussian of mean 0 that models the small components of density (1 - rho).
+%   .min                Minimum bound for the L1 reconstruction.
+%   .max                Max bound for the L1 reconstruction.
+%
+% Outputs :
+% results -             Structure field containing the final results about the reconstruction of the signal and its parameters.       
+%   .av_mess            final signal estimate as a column vector.
+%   .param_1/2/3        prior-dependent parameters learned (of required), see below.
+%   .rho                estimated density of non zero components (or of the big components in the '2Gauss' case).
+% n_and_e -             Structure field containing the final results about the noise and the reconstruction error.  
+%   .var_noise          estimated variance vector of the noise.
+%   .true_error         mean squarred error of the reconstructed signal with respect to the original one if given.
+%
+% Prior-dependent parameters :
+% Gaussian sparse prior : p(x) ~ (1 - rho) * delta(x) + rho / (sqrt(2 * pi) * dev) * exp(-(x - m)^2 / (2 * dev^2) ) : param_1 = m_gauss; param_2 = var_gauss; 
+% Mixture of two gaussians (small one with 0 mean) : p(x) ~ (1 - rho) * / (sqrt(2 * pi * var_1) ) * exp(-x^2 / (2 * var_1) ) + rho / (sqrt(2 * pi * var_2) ) * exp(-(x - m_2)^2 / (2 * var_2) ) : param_1 = m_2_gauss; param_2 = var_1_gauss; param_3 = var_2_gauss; 
+% Exponential sparse prior : p(x) ~ (1 - rho) * delta(x) + rho * I(x > 0) * exp(-expo * x), expo > 0 : param_1 = expo; 
+% Unity inside a finite interval sparse prior : p(x) ~ (1 - rho) * delta(x) + rho * I(c_down < x < c_up) : param_1 = c_down; param_2 = c_up; 
+%
+% Example:
+My = CSBP_Solver_Opt(); My.learn = 1;
+size = 1000; rho = 0.2; mean = 1; var = 1; S = S_SparseGauss(size,rho,mean,var);
+measure_rate = 0.6; var_noise = 0; G = randn(measure_rate .* size,size);
+Y = G * S' + sqrt(var_noise) .* randn(measure_rate .* size,1);
+[results,n_and_e] = CSBP_Solver(Y,G,My);
+%
+% Algorithm is taken from Krzakala et al. arXiv:1206.3953, J. Stat. Mech. (2012) P08009 
+% See History.txt for details.
+% Written and updated by Florent Krzakala, Jean Barbier and Pan Zhang.
