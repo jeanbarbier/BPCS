@@ -2,8 +2,8 @@ clear all
 % Parameters
 rep = 1; cav = 1;
 Delta = 0; rho = 0.33; alpha = 0.5;
-Emin = 1e-2; Emax = 0.12;
-Vmin = 1e-2; Vmax = 0.12;
+Emin = 1e-1; Emax = 0.12;
+Vmin = 1e-1; Vmax = 0.12;
 dE = 0.003; dV = dE;
 E = Emin; tt = 1;
 disp((Emax - Emin) .* (Vmax - Vmin) ./ (dE .* dV) )
@@ -18,7 +18,7 @@ while (E <= Emax)
         % Density evolution
         [E_new_rep,V_new_rep,E_new_cav,V_new_cav] = DensEvoSparseGauss(rep,cav,rho,alpha,Delta,E,V);
         if (cav == 1); DE_E_cav(tt,t) = (E_new_cav - E) ./ sqrt((V - V_new_cav).^2 + (E - E_new_cav).^2); DE_V_cav(tt,t) = (V_new_cav - V) ./ sqrt((V - V_new_cav).^2 + (E - E_new_cav).^2); end;
-        if (rep == 1); DE_E_rep(tt,t) = (E_new_rep - E) ./ sqrt((V - V_new_rep).^2 + (E - E_new_rep).^2); DE_V_rep(tt,t) = (V_new_rep - V) ./ sqrt((V - V_new_rep).^2 + (E - E_new_rep).^2); end;
+        if (rep == 1); DE_E_rep(tt,t) = (E_new_rep - E) ./ sqrt((V - V_new_rep).^2 + (E - E_new_rep).^2); DE_V_rep(tt,t) = (V_new_rep - V) ./ sqrt((V - V_new_rep).^2 + (E - E_new_rep).^2); end;                
         
         % New value of Frep to see if it max or min
         if (cav == 1); Frep_new_cav = Frep_SparseGauss(rho,alpha,Delta,E_new_cav,V_new_cav); end;
@@ -116,19 +116,23 @@ end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ONLY NISHIMORI:
 
-% clear all
-% % Parameters
-% Delta = 0; rho = 0.35; alpha = 0.48;
-% Emin = 1e-5; Emax = 1;
-% dE = 1.1;
-% E = Emin; t = 1;
-%
-% while (E <= Emax)
-%     V = E;
-%     Frep(1,t) = Frep_SparseGauss(rho,alpha,Delta,E,V);
-%     E_(1,t) = E;
-%     E = E .* dE;
-%     t = t + 1;
-% end
-% semilogx(E_,Frep);
-% xlabel('E')
+clear all
+% Parameters
+Delta = 0; rho = 0.35; alpha = 0.48;
+Emin = 1e-5; Emax = 1;
+dE = 1.1;
+E = Emin; t = 1;
+
+while (E <= Emax)
+    V = E;
+    
+    % Replica free energy
+    Frep(1,t) = Frep_SparseGauss(rho,alpha,Delta,E,V);
+       
+        
+    E_(1,t) = E;
+    E = E .* dE;
+    t = t + 1;
+end
+semilogx(E_,Frep);
+xlabel('E')

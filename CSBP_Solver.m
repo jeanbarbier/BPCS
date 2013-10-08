@@ -1,26 +1,26 @@
-function [prior,n_and_e,varargout] = CSBP_Solver(Y,G,opt)
+function [prior, n_and_e, MSEt] = CSBP_Solver(Y, G, opt)
 check_size();
 set_parameters();
 display_information();
 initialisation();
 
 % Construction of the prior dependent class, noise_and_error and dump ones
-prior = Prior(opt.signal_rho,N,measure_rate,opt.learn,opt.prior,opt.dump_learn,R_init,S2_init,av_mess_init,var_mess_init,opt.method,prior_param{1},prior_param{2},prior_param{3},prior_param{4}); F = str2func(prior.func); prior_temp = prior;
-n_and_e = noise_and_error(opt.conv,opt.var_noise,opt.dump_learn);
+prior = Prior(opt.signal_rho, N, measure_rate, opt.learn, opt.prior, opt.dump_learn, R_init, S2_init, av_mess_init, var_mess_init, opt.method, prior_param{1}, prior_param{2}, prior_param{3}, prior_param{4}); F = str2func(prior.func); prior_temp = prior;
+n_and_e = noise_and_error(opt.conv, opt.var_noise, opt.dump_learn);
 
 % Starting main code
 t = 0; print_to_screen(); t = 1;
 while (t <= opt.nb_iter)
     
     switch (opt.method)
-        case ('AMP'); AMP_iterate();
-        case ('AMPh'); AMPh_iterate();
-        case ('AMPhb'); AMPhb_iterate();
-        case ('BP' ); BP_iterate();
-        case ('AMPhadamard'); AMPhadamard_iterate();
-        case ('AMPhadamardSeeded'); AMPseededHadamardGeneral();
-        case ('AMPhadamardSeededTranspose'); AMPseededHadamardGeneralTranspose();
-        case ('AMPhadamardSeededTransposeA'); AMPseededHadamardGeneralTransposeA();
+        case ('AMP'); AMP();
+        case ('AMPtap'); AMPtap();
+        case ('AMPtapB'); AMPtapB(); % ??
+        case ('AMPseededHadamard'); AMPseededHadamard();
+        case ('AMPseededHadamardTranspose'); AMPseededHadamardTranspose();
+        case ('AMPseededHadamardTransposeA'); AMPseededHadamardTransposeA();
+        case ('AMPseededFourier'); AMPseededFourier();
+        case ('AMPcomplex'); AMPcomplex();
     end
     
     % Test of the convergence
@@ -44,10 +44,16 @@ while (t <= opt.nb_iter)
     if ((opt.print > 0) && (mod(t, opt.print) == 0) ); print_to_screen(); end
     
     % MSE by block
-    if ((opt.MSEbyBlock > 0) && (mod(t, opt.MSEbyBlock) == 0) && strcmp(opt.method,'AMPhadamardSeeded') )
-        MSE = MSEbyBloc(prior.av_mess, opt.signal, opt.numBlockC, opt.Nblock);
-        plot(MSE); drawnow;
+    if ((opt.MSEbyBlock > 0) && (mod(t, opt.MSEbyBlock) == 0) && (strcmp(opt.method, 'AMPseededHadamard') || strcmp(opt.method, 'AMPseededFourier') ) )
+        MSE = MSEbyBloc(prior.av_mess, opt.signal, opt.numBlockC, opt.Nblock, opt.method);
+        if(strcmp(opt.method, 'AMPhadamardSeeded') ); semilogy(MSE);
+        else semilogy([1 : opt.numBlockC], MSE(1, :), 'r', [1 : opt.numBlockC], MSE(2, :), 'b'); end
+        if (t == opt.MSEbyBlock); MSEmax = max(max(MSE) ); end
+        axis([1, opt.numBlockC, 0, MSEmax] ); drawnow;
     end
+    
+    % MSE as a function of the iterations, to be compared with density evolution
+    MSEt(t) = n_and_e.true_error;
     
     t = t + 1;
     

@@ -28,12 +28,14 @@ switch opt.prior
         prior_param{1} = opt.beta; prior_param{2} = NaN; prior_param{3} = NaN; prior_param{4} = NaN;
     case 'Binary1'
         prior_param{1} = NaN; prior_param{2} = NaN; prior_param{3} = NaN; prior_param{4} = NaN;
+    case 'Complex'
+        prior_param{1} = opt.m_gauss; prior_param{2} = opt.var_gauss; prior_param{3} = NaN; prior_param{4} = NaN;
     otherwise
         disp('unknown prior')
 end
 
 if (opt.signal_rho < 0); opt.signal_rho = measure_rate ./ 10; end;
-[a,b] = size(opt.signal); if (a > b); opt.signal = opt.signal'; end;
+[a,b] = size(opt.signal); if (a > b); opt.signal = opt.signal.'; end;
 
 if (strcmp(opt.method,'AMP') || strcmp(opt.method,'AMPh') )
     if (opt.save_speed == 1) % requires approximately 3 to 4 times the memory space needed to store the measurement matrix G but speed up the algorithm.
@@ -98,7 +100,7 @@ if (strcmp(opt.method,'AMPhadamard') == 1)
     Gm1d2 = Gmean1d.^2;
 end
 
-if ((strcmp(opt.method,'AMPhadamardSeeded') == 1 ) || (strcmp(opt.method,'AMPhadamardSeededTranspose') == 1) )
+if ((strcmp(opt.method,'AMPseededHadamard') == 1 ) || (strcmp(opt.method,'AMPseededHadamardTranspose') == 1) )
     M = opt.M; N = opt.N;
     if (opt.remove_mean > 0);
         
@@ -107,7 +109,7 @@ if ((strcmp(opt.method,'AMPhadamardSeeded') == 1 ) || (strcmp(opt.method,'AMPhad
         Ymean = zeros(1, opt.M);
         for l = 1 : opt.numBlockL
             vec(sum(opt.Mblock(1 : (l - 1) ) ) + 1 : sum(opt.Mblock(1 : l) ) ) = 1;
-            Gmean(l, :) = 1 / opt.Mblock(l) * MultSeededHadamardTranspose2(vec, opt.J, opt.numBlockL, opt.numBlockC, opt.Mblock, opt.Nblock, opt.rp, opt.noBlockError)';
+            Gmean(l, :) = 1 / opt.Mblock(l) * MultSeededHadamardTranspose2(vec, opt.J, opt.numBlockL, opt.numBlockC, opt.Mblock, opt.Nblock, opt.rp, opt.noBlockError).';
             Ymean(sum(opt.Mblock(1 : (l - 1) ) ) + 1 : sum(opt.Mblock(1 : l) ) ) = mean(Y(sum(opt.Mblock(1 : (l - 1) ) ) + 1 : sum(opt.Mblock(1 : l) ) ) );
             vec = zeros(1, opt.M);
         end

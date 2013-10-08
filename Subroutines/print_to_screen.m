@@ -55,6 +55,12 @@ switch opt.prior
         else
             PR = sprintf('%d %e %e %e %e %e %e %e',full([t prior.rho n_and_e.var_noise n_and_e.convergence n_and_e.true_error] ) );
         end
+    case ('Complex')
+        if (max(size(opt.signal) ) < 2)
+            PR = sprintf('%d %e %e %e %e %e %e %e',full([t prior.rho n_and_e.var_noise prior.param_1 prior.param_2 n_and_e.convergence] ) );
+        else
+            PR = sprintf('%d %e %e %e %e %e %e %e',full([t prior.rho n_and_e.var_noise prior.param_1 prior.param_2 n_and_e.convergence n_and_e.true_error] ) );
+        end
     otherwise
         disp('unknown prior')
 end
