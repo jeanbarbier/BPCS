@@ -13,13 +13,15 @@ classdef noise_and_error
         end
         
         function obj = learn_noise(obj,Y,W,V)
-            obj.var_noise = obj.dump_learn .* obj.var_noise_old * (1 - obj.dump_learn) .* ((Y - W).^2 * (1 + V ./ obj.var_noise_old).^(-2)' ) ./ sum((1 + V ./ obj.var_noise_old).^(-1) );
+            obj.var_noise = obj.dump_learn .* obj.var_noise_old * (1 - obj.dump_learn) .* ((Y - W).^2 * (1 + V ./ obj.var_noise_old).^(-2).' ) ./ sum((1 + V ./ obj.var_noise_old).^(-1) );
             if (obj.var_noise < 1e-100); obj.var_noise = 1e-100; end;
             obj.var_noise_old = obj.var_noise;
         end
         
         function obj = compute_true_MSE(obj,signal,X)
-            obj.true_error = sum((signal - X).^2) ./ max(size(X) );
+            if (isreal(signal) ); obj.true_error = sum((signal - X).^2) ./ max(size(X) );
+            else obj.true_error = sum((real(signal) - real(X) ).^2 + (imag(signal) - imag(X) ).^2) ./ max(size(X) ); end
+            
         end
         
         function obj = compute_convergence(obj,X_old,X)

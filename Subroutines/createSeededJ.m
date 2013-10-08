@@ -1,4 +1,4 @@
-function [J] = createSeededHadamardJ(numBlockL, numBlockC, JJ, w)
+function [J] = createSeededJ(numBlockL, numBlockC, JJ, w)
 
 J = zeros(numBlockL, numBlockC);
 ww = [0 : w];

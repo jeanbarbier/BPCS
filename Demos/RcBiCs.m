@@ -15,7 +15,7 @@ alphaWavelet = 0.04;
 % coding rate (power of 2)
 M = N / 2^2;
 % measurement rate
-alphaCs = 0.1;
+alphaCs = 0.05;
 % do you want to use hadamard matrix (way more fast) or gaussian one?
 hadamard = 1;
 % seeded or homogeneous matrix (if seeded = 0)? for both there are random and hadamard matrices
@@ -130,6 +130,10 @@ if (hadamard == 1);
         Jf = createSeededHadamardJ(numBlockL, numBlockC, JJ, w);
         % creation of the matrices containing the amplitudes by block of the measurement matrix A
         Ja = randn(numBlockLa, numBlockC);
+        %         for i = 1 : numBlockLa
+        %             Ja(i, mod(i,numBlockC) + 1 ) = 1;
+        %         end
+        
     end
     
     % selection of the lines of the matrices that are sign-switched

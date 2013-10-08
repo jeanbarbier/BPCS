@@ -66,11 +66,11 @@
 function opt = CSBP_Solver_Opt()
 opt.nb_iter = 1000;
 opt.print = 10;
-opt.conv = 10^(-8);
+opt.conv = 1e-8;
 opt.learn = 0;
 opt.learn_d = 0;
 opt.signal_rho = -1;
-opt.var_noise = 10^(-10);
+opt.var_noise = 1e-10;
 opt.signal = [];
 opt.dump_learn = 0.;
 opt.dump_mes = 0.5;

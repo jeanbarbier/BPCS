@@ -7,7 +7,7 @@ if (cav == 1)
     Z = @(S2,R,rho) (1 - rho) ./ sqrt(2 .* pi .* S2) .* exp(-R.^2 ./ (2 .* S2) ) + rho ./ sqrt(2 .* pi .* (S2 + 1) ) .* exp(-0.5 .* R.^2 ./ (1 + S2) );
     f_a = @(S2,R,rho) (rho ./ sqrt(2 .* pi .* (S2 + 1) ) .* exp(-0.5 .* R.^2 ./ (1 + S2) ) .* R ./ (S2 + 1) ) ./ Z(S2,R,rho);
     f_b = @(S2,R,rho) (rho ./ sqrt(2 .* pi .* S2) .* (S2.^(-1) + 1).^(-3 ./ 2) .* exp(-0.5 .* R.^2 ./ (1 + S2) ) .* (1 + (R ./ S2).^2 ./ (1 ./ S2 + 1) ) ) ./ Z(S2,R,rho);
-    f_c = @(S2,R,rho) max(1e-50,f_b(S2,R,rho) - f_a(S2,R,rho).^2);
+    f_c = @(S2,R,rho) max(1e-50, f_b(S2,R,rho) - f_a(S2,R,rho).^2);
     G = @(z) exp(-0.5 .* z.^2) ./ sqrt(2 .* pi);
     
     int_ = integral(@(s) G(s) .* f_c((Delta + V) ./ alpha,s .* sqrt((E + Delta) ./ alpha + 1),rho),minn,maxx,'AbsTol',1e-20);
@@ -30,9 +30,10 @@ if (rep == 1)
     
     dE_Frep = dE_f + dE_g + (1 - rho) .* integral(@(s) G(s) .* dE_h1(rho,alpha,Delta,E,V,s) ./ h1(rho,alpha,Delta,E,V,s),minn,maxx,'AbsTol',1e-20) + rho .* integral(@(s) G(s) .* dE_h2(rho,alpha,Delta,E,V,s) ./ h2(rho,alpha,Delta,E,V,s),minn,maxx,'AbsTol',1e-20);
     dV_Frep = dV_f + dV_g + (1 - rho) .* integral(@(s) G(s) .* dV_h1(rho,alpha,Delta,E,V,s) ./ h1(rho,alpha,Delta,E,V,s),minn,maxx,'AbsTol',1e-20) + rho .* integral(@(s) G(s) .* dV_h2(rho,alpha,Delta,E,V,s) ./ h2(rho,alpha,Delta,E,V,s),minn,maxx,'AbsTol',1e-20);
-    V_new_rep = V - dV_Frep;
-    E_new_rep = E - dE_Frep;
+    V_new_rep = V + dV_Frep;
+    E_new_rep = E + dE_Frep;
 end
+
 
 end
 
