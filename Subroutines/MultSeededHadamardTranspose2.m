@@ -15,8 +15,7 @@ for c = 1 : numBlockC
     if (c > 2); u = sum(Mblock(1 : c - 2) ) + 1;
     else u = 1; end;
     
-    Y = 0;
-    YY = 0;
+    Y = 0; YY = 0;
     for l = c - 1 : numBlockL
         
         if (c == 1); l = l + 1; l = min(l, numBlockL); end
@@ -32,7 +31,7 @@ for c = 1 : numBlockC
         
         if (max(size(noBlockError) ) > 0)
             XXX = zero;
-            XXX(rp{l,c}(noBlockError{l} ) ) = XX(rp{l,c}(noBlockError{l} ) );
+            XXX(rp{l, c}(noBlockError{l} ) ) = XX(rp{l, c}(noBlockError{l} ) );
             YY = YY + J(l, c) * hadamards(XXX);
         end
         
@@ -40,9 +39,7 @@ for c = 1 : numBlockC
     
     Z(lastZ : lastZ + Nblock - 1) = Y;
     
-    if (max(size(noBlockError) ) > 0)
-        ZZ(lastZ : lastZ + Nblock - 1) = YY;
-    end
+    if (max(size(noBlockError) ) > 0) ZZ(lastZ : lastZ + Nblock - 1) = YY; end
     
     lastZ = lastZ + Nblock;
 end

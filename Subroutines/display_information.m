@@ -54,6 +54,12 @@ if (opt.print > 0)
             else
                 disp('iter   rho   noise   convergence   error')
             end
+        case 'Complex'
+            if (max(size(opt.signal) ) < 2)
+                disp('iter   rho   noise   m  var   convergence')
+            else
+                disp('iter   rho   noise   m  var   convergence   error')
+            end
         otherwise
             disp('unknown prior')
     end

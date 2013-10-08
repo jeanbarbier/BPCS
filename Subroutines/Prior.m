@@ -10,11 +10,12 @@ classdef Prior
         %        param_1 = expo; % Exponential sparse prior : p(x) ~ (1 - rho) * delta(x) + rho * I(x > 0) * exp(-expo * x), expo > 0
         %        param_1 = c_down; param_2 = c_up; % Unity inside a finite interval sparse prior : p(x) ~ (1 - rho) * delta(x) + rho * I(c_down < x < c_up)
         %        param_1 = beta % Laplace prior : p(x) ~ 2 / beta * exp{-beta * |x|}
+        %        param_1 = x_mean; param_2 = var_noise; % Complex prior
     end
     
     methods
         
-        function prior = Prior(rho_init,N,alpha,learn,choice_prior,dump_learn,R_init,S2_init,av_mess_init,var_mess_init,method,varargin)
+        function prior = Prior(rho_init, N, alpha, learn, choice_prior, dump_learn, R_init, S2_init, av_mess_init, var_mess_init, method, varargin)
             % Constructor function
             prior.R = R_init; prior.S2 = S2_init; prior.rho = rho_init; prior.learn = learn; prior.N = N; prior.alpha = alpha; prior.av_mess = av_mess_init; prior.av_mess_old = av_mess_init; prior.var_mess = var_mess_init; prior.var_mess_old = var_mess_init; prior.dump_learn = dump_learn; prior.method = method;
             switch choice_prior
@@ -62,8 +63,15 @@ classdef Prior
                 case 'Laplace'
                     prior.param_1 = varargin{1};
                     prior.func = 'PriorLap';
+                    disp('Laplace')
                 case 'Binary1'
                     prior.func = 'PriorPm1';
+                    disp('PriorPm1')
+                case 'Complex'
+                    prior.param_1 = varargin{1};
+                    prior.param_2 = varargin{2};
+                    prior.func = 'PriorComplex';
+                    disp('Complex')
                 otherwise
                     disp('unknown prior')
             end
@@ -305,8 +313,21 @@ classdef Prior
             % L1 optimization : p(x) ~ 0.5 * delta(x - 1) + 0.5 * delta(x + 1)
             prior.av_mess_old = prior.av_mess;
             prior.av_mess = tanh(prior.R ./ prior.S2);
-%             prior.var_mess = max(1e-18, 1 - prior.av_mess.^2);
-            prior.var_mess = 1 - prior.av_mess.^2;
+            prior.var_mess = max(1e-18, 1 - prior.av_mess.^2);
+            %             prior.var_mess = 1 - prior.av_mess.^2;
+        end
+        
+        function prior = PriorComplex(prior)
+            % Complex case
+            var_gauss = prior.param_2; mean_gauss = prior.param_1; R_ = prior.R; S2_ = prior.S2; rho_ = prior.rho;
+            prior.av_mess_old = prior.av_mess;
+            s2 = var_gauss .* S2_./ (var_gauss + S2_);
+            M = (var_gauss .* R_ + S2_ .* mean_gauss) ./ (S2_ + var_gauss);
+            alpha_ = abs(mean_gauss).^2 ./ var_gauss + abs(R_).^2 ./ S2_ - abs(M).^2 ./ s2;
+            Z = (1 - rho_) .* exp(-0.5 .* abs(R_).^2 ./ S2_) + rho_ .* S2_ ./ (S2_ + var_gauss) .* exp(-alpha_ ./ 2);
+            prior.av_mess = (rho_ .* S2_ ./ (S2_ + var_gauss) .* M .* exp(-alpha_ ./ 2) ) ./ Z;
+            prior.var_mess = max(1e-18, (rho_ ./ Z .* S2_ ./ (S2_ + var_gauss) .* (2 .* s2 + abs(M).^2) .* exp(-alpha_ ./ 2) - abs(prior.av_mess).^2) ./ 2);
+            prior.var_mess(~isfinite(prior.var_mess) ) = 0;            
         end
         
     end

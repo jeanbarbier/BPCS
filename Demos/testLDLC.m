@@ -1,21 +1,24 @@
 clear all
 
 N = 100;
-connec = 10;
-step = 0.01;
+connec = 3;
+step = 0.3;
 
-G = zeros(N);
-for i = 1 : N;
-    rp = randperm(N);
-    G(i, rp(1 : connec) ) = sign(randn(1, connec) );
-end
-G = G ./ sqrt(connec);
-S = S_SparseBinary(N, 0.5);
-S = S - (S == 0);
-capa = exp(-log(2 .* pi) + log(abs(det(G) ) ) .* 2 ./ N - 1);
 
-compute = 1; varNoise = capa; i = 1;
+% capa = exp(-log(2 .* pi) + log(abs(det(G) ) ) .* 2 ./ N - 1);
+
+
+compute = 1; capa = 1 ./ (2 .* pi .* exp(1) ); varNoise = capa; i = 1;
 while (compute == 1)
+    
+    G = zeros(N);
+    for i = 1 : N;
+        rp = randperm(N);
+        G(i, rp(1 : connec) ) = sign(randn(1, connec) );
+    end
+    G = G ./ det(G);
+    S = S_SparseBinary(N, 0.5);
+    S = S - (S == 0);
     
     Y = G * S' + sqrt(varNoise) .* randn(min(size(G) ), 1);
     
@@ -42,7 +45,7 @@ while (compute == 1)
     
     varNoise = varNoise .* exp(-step);
     if (abs(log(varNoise ./ capa) ./ log(10) ) > 3); compute = 0; end
-    error(i) = 1 ./ N .* sum(abs(results.av_mess - S) > 0);
+    error(i) = 1 ./ N .* sum(abs(results.av_mess - S) > 1e-12);
     var(i) = varNoise;
     dist(i) = log(capa ./ varNoise) ./ log(10);
     i = i + 1;
