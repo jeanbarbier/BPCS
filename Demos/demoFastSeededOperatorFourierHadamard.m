@@ -18,16 +18,16 @@ type = 'complex';
 % size of the signal (POWER OF 2 if type = 'real', will be improved soon...)
 N = 5e5;
 % ..and it's density/sparsity
-rho = 0.2;
+rho = 0.3;
 % mean and variance of the real signal or of the real and imaginary parts of the complex one
 mGauss = 0;
 varGauss = 1;
 % global measurement rate (the true rate will be a little big bigger)
-alphaGlobal = 0.21;
+alphaGlobal = 0.5;
 % coupling strenght
 JJ = 0.2;
 % number of blocks for the columns of the seeding matrix, it must divide N (POWER OF 2 if type = 'real')
-numBlockC = 10;
+numBlockC = 1;
 % number of blocks for the rows of the seeding matrix
 if (numBlockC == 1); numBlockL = 1; else numBlockL = numBlockC + 1; end
 % measurement rate 1st block/seed, taken into acount if numBlockC > 1 : can be modified
